@@ -5,51 +5,42 @@ function App() {
   const [items, setItems] = useState([])
   let [description, setDescrption] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [checked, setChecked] = useState(false);
+  // const [numItems, setnumItems] = useState(0)
 
-  function itemQuantity(event) {
-    if (!event.target.value) return;
-    setQuantity(event.target.value);
-    console.log(event.target.value);
-  }
-
-  function handleEvent(event) {
-    if (!event.target.value) return;
-    setDescrption(event.target.value);
-    // console.log(setDescrption.value);
-  }
 
   function handleAddItem(e) {
     e.preventDefault();
     let newItem = {
       id: Date.now(),
       description,
-      packed: checked,
+      packed: false,
       quantity: quantity
     }
     //don't mutate (push method)
     setItems((items) => [...items, newItem])
-    // console.log(items);
-    console.log(description);
-    setDescrption('')
+    // setDescrption('')
   }
 
   const handleCheck = (event, id) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id ? { ...item, packed: event.target.checked } : item
+        item.id === id ? { ...item, packed: event.target.checked } : item //spread oprator
       )
     );
   };
 
+  function handleDelete(id) {
+    console.log('clicked', id);
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
 
   return (
     <>
       <div className='app'>
         <Header />
-        <Form quantity={quantity} itemQuantity={itemQuantity} onInputChange={handleEvent} handleAddItem={handleAddItem} description={description} />
-        <PackingList items={items} itemQuantity={itemQuantity} checked={checked} handleCheck={handleCheck} setChecked={setChecked} />
-        <Footer />
+        <Form description={description} setDescrption={setDescrption} quantity={quantity} handleAddItem={handleAddItem} setQuantity={setQuantity} />
+        <PackingList items={items} handleCheck={handleCheck} handleDelete={handleDelete} />
+        <Footer items={items} />
       </div>
     </>
   );
@@ -65,7 +56,19 @@ function Header() {
   )
 }
 
-function Form({ onInputChange, handleAddItem, description, itemQuantity }) {
+function Form({ handleAddItem, setQuantity, description, setDescrption }) {
+  // const [checked, setChecked] = useState(false);
+  function itemQuantity(event) {
+    if (!event.target.value) return;
+    setQuantity(event.target.value);
+    console.log(event.target.value);
+  }
+
+  function handleEvent(event) {
+    if (!event.target.value) return;
+    setDescrption(event.target.value);
+    // console.log(setDescrption.value);
+  }
   let option = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
   return (
     <>
@@ -78,7 +81,7 @@ function Form({ onInputChange, handleAddItem, description, itemQuantity }) {
             <option key={index + num} value={num}>{num}</option>
           ))}
         </select>
-        <input type='text' value={description} placeholder='item...' onChange={onInputChange} />
+        <input type='text' value={description} placeholder='item...' onChange={handleEvent} />
         <button >Add</button>
       </form>
     </>
@@ -86,42 +89,45 @@ function Form({ onInputChange, handleAddItem, description, itemQuantity }) {
 }
 
 //lift up state(transfer data to child to parent and can be used by other child components)
-function PackingList({ items, isPacked, checked, handleCheck, setChecked }) {
+function PackingList({ items, handleCheck, handleDelete }) {
   return (
-    <>
-      <div className='list'>
-        <ul>
-          {items.map((item, index) => (
+
+    <div className='list'>
+      <ul>
+        {items.map((item, index) => (
+          <li key={index}>
+            <input
+              type='checkbox'
+              checked={item.packed}
+              onChange={(event) => handleCheck(event, item.id)}
+            />
             <span
-              key={item.id}
+
               style={
                 item.packed
                   ? { textDecoration: 'line-through' }
                   : { textDecoration: 'none' }
-              }
-            >
-              <li>
-                <input
-                  type='checkbox'
-                  checked={item.packed}
-                  onChange={(event) => handleCheck(event, item.id)}
-                />
-                {item.quantity}. {item.description}
-                <button>❌</button>
-              </li>
+              }>
+
+              {item.quantity}{item.description}
             </span>
-          ))}
-        </ul>
-      </div>
-    </>
+            <button onClick={() => handleDelete(item.id)}>❌</button>
+          </li>
+
+        ))}
+
+      </ul>
+    </div>
+
   );
 }
 
 
-function Footer() {
+function Footer({ items }) {
+  let numItems = items.length
   return (
     <>
-      <div className='stats'>You have X item in your list</div>
+      <div className='stats'>{`You have ${numItems} item in your list`}</div>
     </>
   )
 }
